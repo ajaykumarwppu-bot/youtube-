@@ -68,7 +68,7 @@
 2. [x] ✅ Release v1.0.0 published — `CreatorStudio-standard-v1.0.0-release.apk` + `CreatorStudio-termux-v1.0.0-release.apk` (zip layout bug — mat install karo, v1.0.1 lo)
 3. [x] ✅ Release rootfs-v1 — bootrapz_2026-10-04.zip live (351.3MB)
 4. [x] ✅ Updater probes: version.json raw (200) + APK download URL + rootfs URL — teeno live
-5. [ ] 🤖 Release v1.0.1 GREEN — APK zip root me server.js verify + `CreatorStudio-MCP-plugin.zip` attached
+5. [x] ✅ Release v1.0.1 GREEN — APK zip root me server.js (7735B) + package.json + data/ seed verify kiya, koi .next/standalone wrapper nahi; `CreatorStudio-MCP-plugin.zip` attached (manifest root par, 18 tools); APK me versionName 1.0.1 confirm
 
 ## 8. Phone par (user steps)
 
