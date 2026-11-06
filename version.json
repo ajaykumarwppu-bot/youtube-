@@ -1,0 +1,14 @@
+{
+  "version_code": 300,
+  "version_name": "2.0.0",
+  "min_supported_version_code": 1,
+  "changelog": [
+    "Creator Studio ab STATIC ENGINE par (Achiva model) — koi localhost/Node server nahi, Studio tap karte hi instant khulta hai",
+    "Black screen problem ka root cause (localhost serving) poora hata diya — Studio ab APK ke andar bundled static app hai",
+    "Studio ka data ab browser IndexedDB me safe rehta hai — app update ke baad bhi preserve",
+    "MCP ab app ke andar: studio_mcp (18 tools) — plugin ZIP install karne ki zaroorat nahi",
+    "Aapke skill packages (Hinglish Documentary Script, Claude Resources, Creator Studio Brain) pehli baar Studio khulne par automatically ready milte hain",
+    "Base: original Antigem v1.0.19 (Santoshkurmi) ka latest code"
+  ],
+  "is_critical": false
+}

@@ -1,0 +1,19 @@
+# deps / build
+node_modules/
+.next/
+out/
+
+# runtime user data — video/pipeline/brain/settings app me banti hain (data nahi jata, naya ban jata hai)
+# sirf skill library (index.json + packages/) repo me rakhi hai
+data/creator-studio/*.json.tmp
+
+# env
+.env
+.env.local
+
+# OS
+.DS_Store
+data/creator-studio/videos.json
+data/creator-studio/pipeline.json
+data/creator-studio/brain.json
+data/creator-studio/settings.json
