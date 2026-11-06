@@ -38,16 +38,19 @@ private sealed interface StudioState {
     data class Error(val message: String, val tail: List<String>) : StudioState
 }
 
-/** Page load ke baad WebView ka Chrome version + DOM status nikaalne wala probe (phone par). */
+/** Page load ke baad WebView ka Chrome version + DOM + layout-size status nikaalne wala probe (phone par). */
 private const val DOM_PROBE_JS =
     "(function(){try{" +
         "var m=navigator.userAgent.match(/Chrome\\/(\\d+)/);" +
-        "var b=document.body;" +
+        "var b=document.body;var d=document.documentElement;" +
         "return JSON.stringify({" +
         "chrome:m?m[1]:\"?\"," +
         "ready:document.readyState," +
         "kids:b?b.children.length:-1," +
-        "textLen:b?b.innerText.replace(/\\s+/g,\"\").length:-1});" +
+        "textLen:b?b.innerText.replace(/\\s+/g,\"\").length:-1," +
+        "innerH:window.innerHeight," +
+        "clientH:d?d.clientHeight:-1," +
+        "bodyH:b?Math.round(b.getBoundingClientRect().height):-1});" +
         "}catch(e){return JSON.stringify({probeErr:String(e&&e.message||e)})}})()"
 
 /**
@@ -178,6 +181,7 @@ fun StudioScreen(
             is StudioState.Ready -> key(webViewEpoch) {
                 StudioWebView(
                     url = s.url,
+                    isVisible = isVisible,
                     reloadKey = reloadKey,
                     softwareRendering = crashRecoveries >= 2,
                     onWebViewReady = { webview = it },
@@ -261,6 +265,7 @@ fun StudioScreen(
 @Composable
 private fun StudioWebView(
     url: String,
+    isVisible: Boolean,
     reloadKey: Int,
     softwareRendering: Boolean,
     onWebViewReady: (WebView) -> Unit,
@@ -272,7 +277,7 @@ private fun StudioWebView(
         if (wv == null) return
         runCatching {
             wv.evaluateJavascript(DOM_PROBE_JS) { r ->
-                onLog("dom probe $tag: ${r?.trim()?.take(200) ?: "null (renderer dead?)"}")
+                onLog("dom probe $tag [view ${wv.width}x${wv.height}]: ${r?.trim()?.take(220) ?: "null (renderer dead?)"}")
             }
         }.onFailure { onLog("dom probe $tag FAILED: ${it.message}") }
     }
@@ -289,6 +294,17 @@ private fun StudioWebView(
                 settings.allowContentAccess = false
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
+                // WebView ka apna background dark — transparent/white-flash wale
+                // old-device composite bugs bypass (BrowserScreen bhi explicit bg deta hai)
+                setBackgroundColor(android.graphics.Color.parseColor("#0F0F0F"))
+                // Purane Android (10-12) ka buggy force-dark band — Browser wale WebView me
+                // pehle se hai; page khud dark-themed hai, force-dark ki zaroorat nahi
+                @Suppress("DEPRECATION")
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    settings.isAlgorithmicDarkeningAllowed = false
+                } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    settings.forceDark = android.webkit.WebSettings.FORCE_DARK_OFF
+                }
                 if (softwareRendering) {
                     // GPU pipeline fail hone par last-resort: software rendering
                     setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
@@ -356,6 +372,14 @@ private fun StudioWebView(
         update = { wv ->
             // reloadKey badalne par fresh URL load (retry/refresh ke baad)
             if (wv.url.isNullOrEmpty() && reloadKey > 0) wv.loadUrl(url)
+            // BrowserScreen jaisa WebView lifecycle (black-screen fix):
+            // visible -> onResume + resumeTimers, hidden -> onPause
+            if (isVisible) {
+                wv.onResume()
+                wv.resumeTimers()
+            } else {
+                wv.onPause()
+            }
         },
         onRelease = { wv ->
             runCatching { wv.stopLoading() }

@@ -1,11 +1,11 @@
 {
-  "version_code": 203,
-  "version_name": "1.0.3",
+  "version_code": 204,
+  "version_name": "1.0.4",
   "min_supported_version_code": 1,
   "changelog": [
-    "FIX: Studio black screen ka asli culprit — phone par WebView ka render process crash ho raha tha. Ab onRenderProcessGone capture hota hai aur app khud naya WebView banake recover karti hai (GPU fail par software rendering fallback)",
-    "JS probe: page load ke baad WebView ka Chrome version + DOM status JS Log me dikhega — device ka WebView kitna purana hai, confirm ho jayega",
-    "Subresource (JS/CSS chunk) errors ab bhi JS Log me aayenge + renderer priority policy + backdrop-blur removal (purane GPU drivers par crash trigger)"
+    "FIX: Studio WebView ko ab BrowserScreen jaisa poora lifecycle mila — visible hone par onResume + resumeTimers, chhupe par onPause (WebView ka unmanaged lifecycle black screen ka naya main suspect tha)",
+    "WebView ko explicit dark background (#0F0F0F) + purane Android (10-12) ka buggy force-dark band — ye dono Browser wale WebView me pehle se the, Studio me missing the",
+    "DOM probe ab layout size bhi dekhata hai — innerHeight, clientHeight, body height + WebView ka actual width×height; black screen rahi to JS Log se exact culprit pakka pata chalega"
   ],
   "is_critical": false
 }
