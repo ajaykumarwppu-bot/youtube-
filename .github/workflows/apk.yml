@@ -65,8 +65,8 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # Android SDK runner par preinstalled hai (/usr/local/lib/android/sdk) —
+      # missing platforms/build-tools Gradle khud download kar leta hai.
 
       - name: Decode release keystore
         env:
@@ -104,14 +104,20 @@ jobs:
           done
           ls -lh
 
-      - name: Detect release (version bump on latest pushed commit)
+      - name: Detect release (version bump ya pehli release pending)
         id: detect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BEFORE=$(git log --oneline | wc -l)
-          # is push me version.json badla? (HEAD commit me version.json touch hua)
+          VN="${{ steps.ver.outputs.version_name }}"
           if git diff --name-only HEAD^ HEAD 2>/dev/null | grep -q '^version.json$'; then
+            echo "version.json badla — release publish hogi"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          elif ! gh release view "v$VN" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "v$VN release abhi tak nahi bani — pehli green build par publish karenge"
             echo "is_release=true" >> $GITHUB_OUTPUT
           else
+            echo "release v$VN already live — skip"
             echo "is_release=false" >> $GITHUB_OUTPUT
           fi
 
