@@ -115,6 +115,11 @@ android {
 
     androidResources {
         noCompress += listOf("gz", "tgz", "tar.gz", "tar")
+        // Next.js static export ka "_next/" folder APK assets me zaroori hai (JS/CSS chunks).
+        // Aapt ka DEFAULT ignore pattern me "_*" hai — underscore wali files/dirs APK se
+        // drop ho jati hain (Studio blank dikhta us case me). Pattern override karke
+        // sirf "_*" hataya hai (dotfiles abhi bhi ignore hote hain).
+        ignoreAssetsPattern = ".svn:.git:.gitignore:.DS_Store:.scc:CVS:thumbs.db:pikledb*:*.mmdb"
     }
 
     packaging {
