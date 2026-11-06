@@ -110,6 +110,12 @@ android {
 
     androidResources {
         noCompress += listOf("gz", "tgz", "tar.gz", "tar", "zip")
+        // Default ignore-assets pattern me "<dir>_*" rule hota hai jo underscore-wali
+        // asset directories ko APK se NIKAL deta hai — Next.js ka static bundle
+        // (assets/_next/) isi wajah se APK me nahi jaa raha tha. Ye override sab
+        // default rules rakhta hai, sirf "<dir>_*" hatata hai (git/svn/dotfiles/junk
+        // ab bhi skip honge; sirf underscore-dirs ab package hongi).
+        ignoreAssetsPattern = "!.svn:!.git:!.gitignore:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 
     packaging {

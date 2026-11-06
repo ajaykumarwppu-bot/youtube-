@@ -1,11 +1,11 @@
 {
-  "version_code": 205,
-  "version_name": "1.0.5",
+  "version_code": 206,
+  "version_name": "1.0.6",
   "min_supported_version_code": 1,
   "changelog": [
-    "EXPERIMENT: Studio me 'Static Test' mode — Studio UI ab APK ke andar bundled files se bhi load hota hai (Achiva jaisa WebViewAssetLoader, bina localhost/Node server ke). Top bar me 'Static Test' button dabao",
-    "Ye test pata karega ki black screen localhost/Node ki wajah se hai ya WebView ke content rendering ki — dono modes ka JS Log comparison milega (static: lines)",
-    "Static bundle = UI shell + client chunks (2.3MB); localhost Studio bilkul untouched — dono alag-alag test karo"
+    "FIX: v1.0.5 ka static bundle APK ke andar nahi gaya tha — Android asset packer underscore-wali directories (assets/_next/) skip kar deta hai. Ab ignoreAssets pattern fix — _next APK me package hoga",
+    "Static Test mode ab poora kaam karega: Studio UI bina localhost/Node server ke, APK ke andar se hi load hoga",
+    "Test: Studio kholo → top bar 'Static Test' dabao → JS Log me static: lines dekho"
   ],
   "is_critical": false
 }
