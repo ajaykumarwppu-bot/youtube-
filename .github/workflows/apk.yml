@@ -80,9 +80,9 @@ jobs:
 
       - name: Gradle release builds (standard + termux)
         env:
-          RELEASE_STORE_PASS: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_STORE_PASS: ${{ secrets.RELEASE_STORE_PASS }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASS: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_KEY_PASS: ${{ secrets.RELEASE_KEY_PASS }}
         run: |
           # keystore credentials build.gradle.kts me hardcoded defaults se aate hain;
           # CI secrets alag hon to override script se karo — simple case: wahi defaults
