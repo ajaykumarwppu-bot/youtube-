@@ -78,3 +78,20 @@
 4. [ ] Floating switcher → Studio → Studio UI (pehli baar 10-30s)
 5. [ ] setup.md follow karke YouTube connect
 6. [ ] `CreatorStudio-MCP-plugin.zip` install (Skills & Plugins) → MCP settings → Custom Plugin MCP → `creator-studio` → agent se studio_health
+
+## 9. v1.0.3 — black screen ka asli fix (WebView render process crash)
+
+**Sandbox proof (v1.0.2 release APK ke andar wale zip ko clean server par chala ke):**
+- [x] ✅ HTML shell poora (16.8KB — Creator Studio + saare nav labels), CSS linked, saare 11 webpack chunks 200 OK, error-net inline script present
+- [x] ✅ Desktop browser me poora dashboard render — ZERO errors, ZERO console output
+- [x] ✅ Deduction: phone par HTML load hota hai + koi JS error nahi + phir bhi black ⇒ WebView ka render process paint se PEHLE hi mar raha hai (black = WebView ka dark-theme background, page ka nahi)
+
+**Fixes (sirf Studio files — minimal diff):**
+- [x] ✅ `StudioScreen.kt`: `onRenderProcessGone` capture + auto-recovery — renderer crash par naya WebView (2 baar GPU mode, phir software-layer fallback), purana WebView destroy
+- [x] ✅ DOM probe: page load ke turant baad + 4s baad — WebView ka Chrome version + readyState + DOM kids/textLen JS Log me (phone-side confirmation data-backed)
+- [x] ✅ Subresource (JS/CSS chunks) ke load/HTTP errors ab bhi JS Log me — silent chunk failure khatam
+- [x] ✅ `setRendererPriorityPolicy(RENDERER_PRIORITY_IMPORTANT)` (API 26+ guard) — renderer memory pressure me kill na ho
+- [x] ✅ `backdrop-blur` hataya (5 jagah, 4 files) — purane GPU drivers par renderer crash ka known trigger
+- [x] ✅ version.json → 1.0.3 (version_code 203)
+- [ ] 📱 User: v1.0.3 install → JS Log me `dom probe` line (chrome version + textLen>0 = JS chal raha) + renderer crash hua to `!! RENDERER CRASHED` line ke baad auto-recover
+

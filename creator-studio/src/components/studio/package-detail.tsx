@@ -156,7 +156,7 @@ export function PackageDetail({ pkgId, onBack, onChanged }: Props) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* full-screen page top bar */}
-      <header className="z-40 flex shrink-0 items-center gap-1 border-b bg-background/95 px-2 py-2 pt-[max(env(safe-area-inset-top),8px)] backdrop-blur">
+      <header className="z-40 flex shrink-0 items-center gap-1 border-b bg-background/95 px-2 py-2 pt-[max(env(safe-area-inset-top),8px)]">
         <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back" className="h-10 w-10">
           <ArrowLeft className="h-5 w-5" />
         </Button>

@@ -16,7 +16,7 @@ export function DetailBar({
   right?: React.ReactNode;
 }) {
   return (
-    <header className="z-20 flex shrink-0 items-center gap-1 border-b bg-background/95 px-2 py-2 backdrop-blur">
+    <header className="z-20 flex shrink-0 items-center gap-1 border-b bg-background/95 px-2 py-2">
       <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back" className="h-10 w-10 shrink-0">
         <ArrowLeft className="h-5 w-5" />
       </Button>

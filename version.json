@@ -1,11 +1,11 @@
 {
-  "version_code": 202,
-  "version_name": "1.0.2",
+  "version_code": 203,
+  "version_name": "1.0.3",
   "min_supported_version_code": 1,
   "changelog": [
-    "FIX: Studio black screen — web app ab webpack build se purane Android WebView tak compatible (pehle Turbopack sirf naye browsers ka JS banata tha)",
-    "Black screen ab impossible-silent: koi bhi JS/render error ab screen par red banner ya JS Log me dikhega",
-    "WebView diagnostics: Studio top bar me JS Log chip — console errors, page load status, network errors phone par hi visible"
+    "FIX: Studio black screen ka asli culprit — phone par WebView ka render process crash ho raha tha. Ab onRenderProcessGone capture hota hai aur app khud naya WebView banake recover karti hai (GPU fail par software rendering fallback)",
+    "JS probe: page load ke baad WebView ka Chrome version + DOM status JS Log me dikhega — device ka WebView kitna purana hai, confirm ho jayega",
+    "Subresource (JS/CSS chunk) errors ab bhi JS Log me aayenge + renderer priority policy + backdrop-blur removal (purane GPU drivers par crash trigger)"
   ],
   "is_critical": false
 }

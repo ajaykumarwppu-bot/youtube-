@@ -38,6 +38,18 @@ private sealed interface StudioState {
     data class Error(val message: String, val tail: List<String>) : StudioState
 }
 
+/** Page load ke baad WebView ka Chrome version + DOM status nikaalne wala probe (phone par). */
+private const val DOM_PROBE_JS =
+    "(function(){try{" +
+        "var m=navigator.userAgent.match(/Chrome\\/(\\d+)/);" +
+        "var b=document.body;" +
+        "return JSON.stringify({" +
+        "chrome:m?m[1]:\"?\"," +
+        "ready:document.readyState," +
+        "kids:b?b.children.length:-1," +
+        "textLen:b?b.innerText.replace(/\\s+/g,\"\").length:-1});" +
+        "}catch(e){return JSON.stringify({probeErr:String(e&&e.message||e)})}})()"
+
 /**
  * Creator Studio screen — local Node server (127.0.0.1) par chalne wala
  * pura Studio web app ek WebView me. Server spawn + health check sab
@@ -54,6 +66,11 @@ fun StudioScreen(
     var state by remember { mutableStateOf<StudioState>(StudioState.Loading) }
     var reloadKey by remember { mutableIntStateOf(0) }
     var webview by remember { mutableStateOf<WebView?>(null) }
+
+    // Renderer-crash recovery: phone par WebView ka render process crash ho jaye to
+    // naya WebView banake khud recover karo (2 baar GPU mode, phir software mode).
+    var webViewEpoch by remember { mutableIntStateOf(0) }
+    var crashRecoveries by remember { mutableIntStateOf(0) }
 
     // Black-screen debugging: WebView ke JS console errors + load failures yahan capture
     // hote hain — top bar ke "JS Log" chip se phone par hi dikh jaate hain.
@@ -158,12 +175,23 @@ fun StudioScreen(
                 }
             }
 
-            is StudioState.Ready -> StudioWebView(
-                url = s.url,
-                reloadKey = reloadKey,
-                onWebViewReady = { webview = it },
-                onLog = { line -> pushJsLog(line) }
-            )
+            is StudioState.Ready -> key(webViewEpoch) {
+                StudioWebView(
+                    url = s.url,
+                    reloadKey = reloadKey,
+                    softwareRendering = crashRecoveries >= 2,
+                    onWebViewReady = { webview = it },
+                    onLog = { line -> pushJsLog(line) },
+                    onRendererCrash = {
+                        crashRecoveries++
+                        if (crashRecoveries <= 2) {
+                            webViewEpoch++
+                        } else {
+                            pushJsLog("!! recovery limit hit — software mode me bhi renderer crash. Upar refresh dabao")
+                        }
+                    }
+                )
+            }
 
             is StudioState.Error -> Column(
                 modifier = Modifier
@@ -234,9 +262,21 @@ fun StudioScreen(
 private fun StudioWebView(
     url: String,
     reloadKey: Int,
+    softwareRendering: Boolean,
     onWebViewReady: (WebView) -> Unit,
-    onLog: (String) -> Unit
+    onLog: (String) -> Unit,
+    onRendererCrash: () -> Unit
 ) {
+    // DOM probe — load ke baad phone ke WebView ka Chrome version + DOM status JS Log me
+    fun probeDom(wv: WebView?, tag: String) {
+        if (wv == null) return
+        runCatching {
+            wv.evaluateJavascript(DOM_PROBE_JS) { r ->
+                onLog("dom probe $tag: ${r?.trim()?.take(200) ?: "null (renderer dead?)"}")
+            }
+        }.onFailure { onLog("dom probe $tag FAILED: ${it.message}") }
+    }
+
     AndroidView(
         modifier = Modifier
             .fillMaxSize()
@@ -249,6 +289,14 @@ private fun StudioWebView(
                 settings.allowContentAccess = false
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
+                if (softwareRendering) {
+                    // GPU pipeline fail hone par last-resort: software rendering
+                    setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    // renderer ko important priority — memory pressure me kill na ho
+                    setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, true)
+                }
                 webViewClient = object : WebViewClient() {
                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                         onLog("page load start: $url")
@@ -256,18 +304,39 @@ private fun StudioWebView(
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         onLog("page load done: $url")
+                        probeDom(view, "done")
+                        // hydration ke baad dobara probe — textLen badha to JS chal raha hai
+                        view?.postDelayed({ probeDom(view, "+4s") }, 4000)
                     }
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                        if (request?.isForMainFrame == true) {
-                            onLog("load error: ${error?.description} (${request.url})")
+                        val u = request?.url?.toString().orEmpty()
+                        // ab subresources (JS/CSS chunks) bhi log hote hain — pehle sirf main frame tha
+                        if (u.startsWith("http")) {
+                            onLog("load error: ${error?.description} — $u")
                         }
                     }
 
                     override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
-                        if (request?.isForMainFrame == true) {
-                            onLog("HTTP ${errorResponse?.statusCode} ${request.url}")
+                        val u = request?.url?.toString().orEmpty()
+                        if (u.startsWith("http")) {
+                            onLog("HTTP ${errorResponse?.statusCode} — $u")
                         }
+                    }
+
+                    // Black screen ka main suspect: render process ka phone-side crash.
+                    // Ab capture hota hai aur app khud naya WebView banake recover karti hai.
+                    override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                        onLog("!! RENDERER CRASHED (didCrash=${detail?.didCrash()}) — naya WebView banaya ja raha hai")
+                        onRendererCrash()
+                        view?.post {
+                            val w = view ?: return@post
+                            runCatching {
+                                (w.parent as? android.view.ViewGroup)?.removeView(w)
+                                w.destroy()
+                            }
+                        }
+                        return true
                     }
                 }
                 webChromeClient = object : WebChromeClient() {

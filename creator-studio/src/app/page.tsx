@@ -101,7 +101,7 @@ export default function Home() {
         ) : (
           <>
             {/* top app bar */}
-            <header className="shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+            <header className="shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)]">
               <div className="flex items-center gap-2.5 px-4 py-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                   <Sparkles className="h-5 w-5" />
@@ -144,7 +144,7 @@ export default function Home() {
             {/* bottom tab bar */}
             <nav
               aria-label="Main navigation"
-              className="shrink-0 border-t bg-background/95 pb-[max(env(safe-area-inset-bottom),6px)] backdrop-blur"
+              className="shrink-0 border-t bg-background/95 pb-[max(env(safe-area-inset-bottom),6px)]"
             >
               <div className="grid grid-cols-5 px-1 pt-1.5">
                 {NAV.map((item) => {
