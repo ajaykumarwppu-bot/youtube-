@@ -40,9 +40,11 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("release.jks")
-            storePassword = "123456"
-            keyAlias = "antigem"
-            keyPassword = "123456"
+            // CI secrets se (RELEASE_STORE_PASS / RELEASE_KEY_ALIAS / RELEASE_KEY_PASS);
+            // local dev ke liye fallback defaults.
+            storePassword = System.getenv("RELEASE_STORE_PASS") ?: "123456"
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "antigem"
+            keyPassword = System.getenv("RELEASE_KEY_PASS") ?: "123456"
         }
     }
 
