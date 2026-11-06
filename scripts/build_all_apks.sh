@@ -31,9 +31,9 @@ echo "📦 Version Name: v${VERSION_NAME} (Code: ${VERSION_CODE})"
 mkdir -p "${OUTPUT_DIR}"
 
 if [[ "${MODE}" == "release" ]]; then
-    # echo "🔨 Compiling Standard Release (:app:assembleStandardRelease)..."
-    # "${ROOT_DIR}/gradlew" -p "${ROOT_DIR}" :app:assembleStandardRelease
-    # for now let build for termux build only
+    echo "🔨 Compiling Standard Release (:app:assembleStandardRelease)..."
+    "${ROOT_DIR}/gradlew" -p "${ROOT_DIR}" :app:assembleStandardRelease
+
     echo "🔨 Compiling Termux Release (:app:assembleTermuxRelease)..."
     "${ROOT_DIR}/gradlew" -p "${ROOT_DIR}" :app:assembleTermuxRelease
 
@@ -41,7 +41,7 @@ if [[ "${MODE}" == "release" ]]; then
     "${ROOT_DIR}/gradlew" -p "${ROOT_DIR}" :app:assembleTermuxSharedRelease
 
     APKS_SRC="${ROOT_DIR}/app/build/outputs/apk"
-    # find "${APKS_SRC}/standard/release" -name "*.apk" -exec cp {} "${OUTPUT_DIR}/antiGem-standard-v${VERSION_NAME}-release.apk" \;
+    find "${APKS_SRC}/standard/release" -name "*.apk" -exec cp {} "${OUTPUT_DIR}/antiGem-standard-v${VERSION_NAME}-release.apk" \;
     find "${APKS_SRC}/termux/release" -name "*.apk" -exec cp {} "${OUTPUT_DIR}/antiGem-termux-v${VERSION_NAME}-release.apk" \;
     find "${APKS_SRC}/termuxShared/release" -name "*.apk" -exec cp {} "${OUTPUT_DIR}/antiGem-termux-shared-v${VERSION_NAME}-release.apk" \;
 
