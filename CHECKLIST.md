@@ -41,7 +41,7 @@
 - [x] ✅ `STUDIO_PORT` per-flavor (standard 8877 / termux 8875)
 - [x] ✅ `zip` noCompress — studio asset bina double-compression ke
 - [x] ✅ WebView cleartext localhost — manifest me allowed (`usesCleartextTraffic`)
-- [ ] 🤖 Kotlin compile — CI (gradle assemble*Release) GREEN
+- [x] ✅ Kotlin compile — CI (gradle assemble*Release) GREEN (run 42226946400)
 - [ ] 📱 Studio button → server start → WebView me Studio UI
 
 ## 5. MCP plugin (creator-studio-plugin/)
@@ -58,14 +58,14 @@
 - [x] ✅ version.json se version — updater compatible
 - [x] ✅ Keystore CI secrets se (RELEASE_KEYSTORE_BASE64 etc.) — repo me key kabhi nahi
 - [x] ✅ Release publish par updater-ready APK naming
-- [ ] 🤖 Workflow GREEN — release v1.0.0 published
+- [x] ✅ Workflow GREEN — release v1.0.0 published (standard 37.9MB + termux 37.7MB)
 
 ## 7. Push ke baad — verify
 
-1. [ ] Actions → "Build & Release APK" GREEN
-2. [ ] Release v1.0.0 published — `CreatorStudio-standard-v1.0.0-release.apk` + `CreatorStudio-termux-v1.0.0-release.apk`
-3. [ ] Release rootfs-v1 — bootrapz_2026-10-04.zip live
-4. [ ] Updater probes: version.json raw (200) + APK download URL + rootfs URL
+1. [x] ✅ Actions → "Build & Release APK" GREEN
+2. [x] ✅ Release v1.0.0 published — `CreatorStudio-standard-v1.0.0-release.apk` + `CreatorStudio-termux-v1.0.0-release.apk`
+3. [x] ✅ Release rootfs-v1 — bootrapz_2026-10-04.zip live (351.3MB)
+4. [x] ✅ Updater probes: version.json raw (200) + APK download URL + rootfs URL — teeno live
 
 ## 8. Phone par (user steps)
 
