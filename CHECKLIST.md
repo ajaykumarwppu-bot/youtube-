@@ -59,19 +59,22 @@
 - [x] ✅ Keystore CI secrets se (RELEASE_KEYSTORE_BASE64 etc.) — repo me key kabhi nahi
 - [x] ✅ Release publish par updater-ready APK naming
 - [x] ✅ Workflow GREEN — release v1.0.0 published (standard 37.9MB + termux 37.7MB)
+- [x] ✅ v1.0.1 FIX: studio zip ab root-level (server.js zip root par) — CI me sanity guards bhi; v1.0.0 ka zip `.next/standalone/` nested tha jiski wajah se phone par "server.js missing" aaya tha
+- [x] ✅ v1.0.1: server manager ab rebuild par stale files clean karta hai + galat layout self-heal + MCP plugin zip release me attach
 
 ## 7. Push ke baad — verify
 
 1. [x] ✅ Actions → "Build & Release APK" GREEN
-2. [x] ✅ Release v1.0.0 published — `CreatorStudio-standard-v1.0.0-release.apk` + `CreatorStudio-termux-v1.0.0-release.apk`
+2. [x] ✅ Release v1.0.0 published — `CreatorStudio-standard-v1.0.0-release.apk` + `CreatorStudio-termux-v1.0.0-release.apk` (zip layout bug — mat install karo, v1.0.1 lo)
 3. [x] ✅ Release rootfs-v1 — bootrapz_2026-10-04.zip live (351.3MB)
 4. [x] ✅ Updater probes: version.json raw (200) + APK download URL + rootfs URL — teeno live
+5. [ ] 🤖 Release v1.0.1 GREEN — APK zip root me server.js verify + `CreatorStudio-MCP-plugin.zip` attached
 
 ## 8. Phone par (user steps)
 
 1. [ ] Original AntiGem uninstall (alag signing hai)
-2. [ ] APK install (termux flavor = full environment; standard = halka)
+2. [ ] **v1.0.1** APK install (termux flavor = full environment; standard = halka) — v1.0.0 se update-over-install bhi chalega (signature same)
 3. [ ] Local Tools install (Settings → Local Tools) — Node.js isi se aata hai
-4. [ ] Floating switcher → Studio → Studio UI
+4. [ ] Floating switcher → Studio → Studio UI (pehli baar 10-30s)
 5. [ ] setup.md follow karke YouTube connect
-6. [ ] Plugin ZIP install → agent se studio_health
+6. [ ] `CreatorStudio-MCP-plugin.zip` install (Skills & Plugins) → MCP settings → Custom Plugin MCP → `creator-studio` → agent se studio_health

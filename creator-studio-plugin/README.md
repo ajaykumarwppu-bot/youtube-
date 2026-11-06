@@ -6,10 +6,9 @@ Agent ko 18 `studio_*` tools + built-in skills ka access milta hai.
 ## Install (ZIP se)
 
 1. Pehle app me **Studio ek baar khol lo** (floating switcher → Studio icon) — server start ho jayega.
-2. Is repo ka code phone par download karo (`creator-studio-plugin/` folder).
-3. Folder ko ZIP banao (ya sirf `creator-studio-plugin` folder ka zip).
-4. App me: **Settings → Skills & Plugins (WebView Extensions) → Install** → ZIP select karo.
-5. Install ke baad plugin list me **Creator Studio MCP** enabled dikhna chahiye.
+2. GitHub release page se **`CreatorStudio-MCP-plugin.zip`** download karo (v1.0.1 se attached hai).
+3. App me: **Settings → Skills & Plugins (WebView Extensions) → Install** → ZIP select karo.
+4. Install ke baad plugin list me **Creator Studio MCP** enabled dikhna chahiye.
 
 ## Agent me connect karna (MCP)
 

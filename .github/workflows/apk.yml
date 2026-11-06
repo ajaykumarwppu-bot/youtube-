@@ -40,17 +40,35 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npm run build
-          # standalone ke saath static assets + public bhi pack karo (Next docs pattern)
+          # static assets standalone ke .next/ me (Next docs pattern); public/data zip step me
           cp -r .next/static .next/standalone/.next/
-          mkdir -p .next/standalone/public
 
       - name: Zip Studio into APK assets
         run: |
           mkdir -p app/src/main/assets
           rm -f app/src/main/assets/creator-studio.zip
           cd creator-studio
-          zip -qr ../app/src/main/assets/creator-studio.zip .next/standalone package.json data
-          cd ..
+          # public + seed data ko standalone ke ANDAR daalo (Next docs pattern)
+          rm -rf .next/standalone/public
+          [ -d public ] && cp -r public .next/standalone/public || mkdir -p .next/standalone/public
+          rm -rf .next/standalone/data
+          cp -r data .next/standalone/data
+          # IMPORTANT (v1.0.0 regression fix): zip me standalone ke CONTENTS root par hone
+          # chahiye — server.js zip root par, koi .next/standalone/ wrapper nahi.
+          # StudioServerManager $HOME/creator-studio/ me extract karke root server.js dhoondta hai.
+          cd .next/standalone
+          zip -qr ../../../app/src/main/assets/creator-studio.zip .
+          cd ../../..
+          if ! unzip -l app/src/main/assets/creator-studio.zip | grep -q " server.js$"; then
+            echo "::error::creator-studio.zip ke ROOT par server.js nahi hai — zip layout galat"
+            unzip -l app/src/main/assets/creator-studio.zip | head -20
+            exit 1
+          fi
+          if unzip -l app/src/main/assets/creator-studio.zip | grep -q "\.next/standalone/server.js"; then
+            echo "::error::zip me .next/standalone wrapper hai — contents root par zip karo"
+            exit 1
+          fi
+          echo "sanity ok: server.js zip root par hai"
           ls -lh app/src/main/assets/creator-studio.zip
 
       # ── 2) Android build ─────────────────────────────────────────────────
@@ -137,5 +155,11 @@ jobs:
           changelog = json.load(open('version.json')).get('changelog', [])
           print('\n'.join(f'- {c}' for c in changelog))
           " > /tmp/notes.md
-          gh release create "$TAG" apks/*.apk --repo "$GITHUB_REPOSITORY" \
+          # MCP plugin zip bhi release me attach — phone par sidhe download karke
+          # Settings → Skills & Plugins me install karna hai (manifest.json zip root par)
+          zip -j CreatorStudio-MCP-plugin.zip \
+            creator-studio-plugin/manifest.json \
+            creator-studio-plugin/worker.js \
+            creator-studio-plugin/README.md
+          gh release create "$TAG" apks/*.apk CreatorStudio-MCP-plugin.zip --repo "$GITHUB_REPOSITORY" \
             --title "Creator Studio v$VN" --notes-file /tmp/notes.md

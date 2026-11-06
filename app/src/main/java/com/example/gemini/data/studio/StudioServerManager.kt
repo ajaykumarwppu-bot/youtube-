@@ -83,7 +83,16 @@ object StudioServerManager {
         }
 
         val serverJs = File(dir, "server.js")
-        if (!serverJs.exists()) throw IllegalStateException("server.js missing at ${dir.absolutePath} — build assets corrupted")
+        if (!serverJs.exists()) {
+            val top = dir.listFiles()
+                ?.joinToString(", ") { if (it.isDirectory) "${it.name}/" else it.name }
+                ?.take(300)
+                ?: "(empty)"
+            throw IllegalStateException(
+                "server.js missing at ${dir.absolutePath} — dir contents: [$top]. " +
+                    "Retry dabao (re-extract hoga); phir bhi na chale to APK dobara install karo."
+            )
+        }
 
         // 2) Already healthy? turant wapas
         if (runCatching { isHealthy() }.getOrDefault(false)) return@withLock
@@ -214,6 +223,16 @@ object StudioServerManager {
             return // same build already extracted
         }
 
+        // Naya/changed build: purane build files clean karo, sirf user data (data/) bachao.
+        // Isse v1.0.0 jaisa broken/partial layout bhi update par saaf ho jata hai.
+        if (dir.exists()) {
+            val keep = setOf("data", BUILD_MARKER)
+            dir.listFiles()?.forEach { child ->
+                if (child.name !in keep) {
+                    if (child.isDirectory) child.deleteRecursively() else child.delete()
+                }
+            }
+        }
         dir.mkdirs()
         val dataDir = dataDir(context)
         val dataExists = dataDir.exists() && dataDir.isDirectory
@@ -240,8 +259,59 @@ object StudioServerManager {
                 }
             }
         }
+        // Defense-in-depth: agar zip me standalone `.next/standalone/` wrapper me ho
+        // (purana layout) to contents ko root par flatten kar do.
+        normalizeLayout(dir)
+
+        if (!File(dir, "server.js").exists()) {
+            val top = dir.listFiles()
+                ?.joinToString(", ") { if (it.isDirectory) "${it.name}/" else it.name }
+                ?.take(300)
+                ?: "(empty)"
+            throw IllegalStateException(
+                "extract ke baad server.js nahi mila — dir contents: [$top]. " +
+                    "creator-studio.zip galat layout me bundled hai (CI zip step check karo)."
+            )
+        }
+
         marker.writeText(assetSize.toString())
         Log.i(TAG, "studio assets extracted: $count files (dataPreserved=$dataExists)")
+    }
+
+    /**
+     * Purana zip layout (entries `.next/standalone/` me nested) aaye to unhe root par le aao.
+     * Naya CI layout me ye no-op hai — sirf older/wrong build ke liye safety net.
+     */
+    private fun normalizeLayout(dir: File) {
+        if (File(dir, "server.js").exists()) return
+        val nested = File(dir, ".next/standalone")
+        if (!File(nested, "server.js").isFile) return
+
+        // nested children ko pehle temp me move karo (dir/.next wrapper delete karte
+        // waqt source na kat jaye, isliye direct move nahi)
+        val tmp = File(dir, ".normalize-tmp")
+        tmp.deleteRecursively()
+        tmp.mkdirs()
+        nested.listFiles()?.forEach { child ->
+            val t = File(tmp, child.name)
+            if (!child.renameTo(t)) { copyRecursive(child, t); child.deleteRecursively() }
+        }
+        File(dir, ".next").deleteRecursively()
+        tmp.listFiles()?.forEach { child ->
+            val t = File(dir, child.name)
+            if (!child.renameTo(t)) { copyRecursive(child, t); child.deleteRecursively() }
+        }
+        tmp.deleteRecursively()
+        Log.i(TAG, "studio layout normalized: .next/standalone wrapper flatten kiya")
+    }
+
+    private fun copyRecursive(src: File, dst: File) {
+        if (src.isDirectory) {
+            dst.mkdirs()
+            src.listFiles()?.forEach { copyRecursive(it, File(dst, it.name)) }
+        } else {
+            src.copyTo(dst, overwrite = true)
+        }
     }
 
     private fun isDataPath(entryName: String): Boolean {

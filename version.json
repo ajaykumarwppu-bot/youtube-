@@ -1,13 +1,11 @@
 {
-  "version_code": 200,
-  "version_name": "1.0.0",
+  "version_code": 201,
+  "version_name": "1.0.1",
   "min_supported_version_code": 1,
   "changelog": [
-    "Fresh build: original Antigem base + built-in YouTube Automation Creator Studio",
-    "Floating switcher me naya Studio button — Idea Bank, 8-stage production pipeline, video records with upload package, brain (skills/experiments/findings), settings",
-    "MCP plugin: agent chat se hi poora Studio pipeline chala sakta hai (17 studio_* tools + 2 skills)",
-    "Update system is repo se chalta hai — original Antigem se koi connection nahi",
-    "Note: original AntiGem uninstall karke ye fresh install karna hai (alag signing)"
+    "FIX: 'server.js missing — build assets corrupted' error poora gaya — Studio build zip ab root-level hai, server install par sahi jagah extract hota hai",
+    "Server manager ab update par purane build files clean karta hai (user ka Studio data — ideas/videos/brain — preserve rehta hai) aur galat zip layout ko khud theek karta hai",
+    "Creator Studio MCP plugin zip ab release me attached hai — Settings → Skills & Plugins me install karo, phir MCP settings → Custom Plugin MCP se enable karo"
   ],
   "is_critical": false
 }
