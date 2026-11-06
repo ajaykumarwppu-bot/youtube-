@@ -95,3 +95,15 @@
 - [x] ✅ version.json → 1.0.3 (version_code 203)
 - [ ] 📱 User: v1.0.3 install → JS Log me `dom probe` line (chrome version + textLen>0 = JS chal raha) + renderer crash hua to `!! RENDERER CRASHED` line ke baad auto-recover
 
+
+## 10. v1.0.4 — WebView lifecycle + dark bg + layout-size probe (Claude review par fix)
+
+**Root cause update (v1.0.3 ke baad ka data):** user ne v1.0.3 install ki — ab bhi black, koi `!! RENDERER CRASHED` line nahi aayi aur DOM me content ban raha tha ⇒ renderer zinda tha, problem paint/composite ki. Claude review ne pakda: Studio WebView ka lifecycle bilkul unmanaged tha — BrowserScreen apne WebView ko onResume/resumeTimers/onPause + explicit background deta hai, Studio ko kuch nahi mila tha. Studio ek graphicsLayer (alpha/translationX) Box me bhi hai (purane GPU par WebView ke liye tricky combination).
+
+**Fixes (sirf StudioScreen.kt + version.json — 2 files, minimal diff):**
+- [x] ✅ `isVisible=true` → `wv.onResume()` + `wv.resumeTimers()`; `false` → `wv.onPause()` (BrowserScreen pattern, AndroidView update block me)
+- [x] ✅ `setBackgroundColor(#0F0F0F)` — WebView ka apna dark bg (transparent/white-flash composite bugs bypass)
+- [x] ✅ Force-dark band (Tiramisu: `isAlgorithmicDarkeningAllowed=false`; Q+: `FORCE_DARK_OFF`) — purane Android 10-12 ke buggy force-dark se bachav, BrowserScreen jaisa
+- [x] ✅ DOM probe extended: `innerHeight` + `documentElement.clientHeight` + `body.getBoundingClientRect().height` + Kotlin-side view width×height — zero-size layout ab pakda jayega
+- [x] ✅ CI GREEN (run 42263255603) + release v1.0.4 live — APK ke andar studio zip root layout verified (data/ root par, nesting nahi)
+- [ ] 📱 User: v1.0.4 install → JS Log me `dom probe` ab `[view WxH]` + innerH/clientH/bodyH dikhayega — view 0x0 ya heights 0 aaye to layout problem, sab normal aaye aur black rahe to paint/composite problem
