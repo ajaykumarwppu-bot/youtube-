@@ -1,6 +1,11 @@
 package com.example.gemini.ui.studio
 
 import android.annotation.SuppressLint
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
@@ -50,6 +55,15 @@ fun StudioScreen(
     var reloadKey by remember { mutableIntStateOf(0) }
     var webview by remember { mutableStateOf<WebView?>(null) }
 
+    // Black-screen debugging: WebView ke JS console errors + load failures yahan capture
+    // hote hain — top bar ke "JS Log" chip se phone par hi dikh jaate hain.
+    var jsLog by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showJsLog by remember { mutableStateOf(false) }
+    fun pushJsLog(line: String) {
+        val stamped = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date()) + "  " + line
+        jsLog = (jsLog + stamped).takeLast(30)
+    }
+
     // Server ensure — sirf tab jab screen visible ho; har attempt naya coroutine (IO par)
     LaunchedEffect(isVisible, reloadKey) {
         if (!isVisible) return@LaunchedEffect
@@ -86,6 +100,18 @@ fun StudioScreen(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
+                if (jsLog.isNotEmpty()) {
+                    TextButton(
+                        onClick = { showJsLog = true },
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Text(
+                            "JS Log (${jsLog.size})",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
                 when (val s = state) {
                     is StudioState.Ready -> Text(
                         text = "local:${StudioServerManager.serverPort()}",
@@ -135,7 +161,8 @@ fun StudioScreen(
             is StudioState.Ready -> StudioWebView(
                 url = s.url,
                 reloadKey = reloadKey,
-                onWebViewReady = { webview = it }
+                onWebViewReady = { webview = it },
+                onLog = { line -> pushJsLog(line) }
             )
 
             is StudioState.Error -> Column(
@@ -179,6 +206,27 @@ fun StudioScreen(
             }
         }
     }
+
+    if (showJsLog) {
+        AlertDialog(
+            onDismissRequest = { showJsLog = false },
+            title = { Text("WebView / JS log", fontSize = 14.sp) },
+            text = {
+                Text(
+                    jsLog.joinToString("\n"),
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showJsLog = false }) { Text("Band karo") }
+            },
+            dismissButton = {
+                TextButton(onClick = { jsLog = emptyList(); showJsLog = false }) { Text("Clear") }
+            }
+        )
+    }
 }
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -186,7 +234,8 @@ fun StudioScreen(
 private fun StudioWebView(
     url: String,
     reloadKey: Int,
-    onWebViewReady: (WebView) -> Unit
+    onWebViewReady: (WebView) -> Unit,
+    onLog: (String) -> Unit
 ) {
     AndroidView(
         modifier = Modifier
@@ -201,7 +250,35 @@ private fun StudioWebView(
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
                 webViewClient = object : WebViewClient() {
-                    // Sab kuch loopback server se — koi external navigation nahi
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        onLog("page load start: $url")
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        onLog("page load done: $url")
+                    }
+
+                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                        if (request?.isForMainFrame == true) {
+                            onLog("load error: ${error?.description} (${request.url})")
+                        }
+                    }
+
+                    override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+                        if (request?.isForMainFrame == true) {
+                            onLog("HTTP ${errorResponse?.statusCode} ${request.url}")
+                        }
+                    }
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                        val level = consoleMessage?.messageLevel()
+                        if (level == ConsoleMessage.MessageLevel.ERROR || level == ConsoleMessage.MessageLevel.WARNING) {
+                            val src = consoleMessage?.sourceId()?.substringAfterLast('/').orEmpty()
+                            onLog("console ${level}: ${consoleMessage?.message()} ($src:${consoleMessage?.lineNumber()})")
+                        }
+                        return true
+                    }
                 }
                 loadUrl(url)
                 onWebViewReady(this)

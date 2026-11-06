@@ -1,11 +1,11 @@
 {
-  "version_code": 201,
-  "version_name": "1.0.1",
+  "version_code": 202,
+  "version_name": "1.0.2",
   "min_supported_version_code": 1,
   "changelog": [
-    "FIX: 'server.js missing — build assets corrupted' error poora gaya — Studio build zip ab root-level hai, server install par sahi jagah extract hota hai",
-    "Server manager ab update par purane build files clean karta hai (user ka Studio data — ideas/videos/brain — preserve rehta hai) aur galat zip layout ko khud theek karta hai",
-    "Creator Studio MCP plugin zip ab release me attached hai — Settings → Skills & Plugins me install karo, phir MCP settings → Custom Plugin MCP se enable karo"
+    "FIX: Studio black screen — web app ab webpack build se purane Android WebView tak compatible (pehle Turbopack sirf naye browsers ka JS banata tha)",
+    "Black screen ab impossible-silent: koi bhi JS/render error ab screen par red banner ya JS Log me dikhega",
+    "WebView diagnostics: Studio top bar me JS Log chip — console errors, page load status, network errors phone par hi visible"
   ],
   "is_critical": false
 }
