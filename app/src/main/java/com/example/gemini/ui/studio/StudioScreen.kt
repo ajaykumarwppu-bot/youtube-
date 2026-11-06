@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.webkit.WebViewAssetLoader
 import com.example.gemini.data.studio.StudioServerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,6 +53,19 @@ private const val DOM_PROBE_JS =
         "clientH:d?d.clientHeight:-1," +
         "bodyH:b?Math.round(b.getBoundingClientRect().height):-1});" +
         "}catch(e){return JSON.stringify({probeErr:String(e&&e.message||e)})}})()"
+
+/** Static experiment URL — Studio shell + client chunks APK assets se (Achiva pattern). */
+private const val STUDIO_STATIC_URL = "https://appassets.androidplatform.net/index.html"
+
+/** DOM probe chalao — result JS Log me [view WxH] + chrome version ke saath aata hai. */
+private fun runDomProbe(wv: WebView?, tag: String, onLog: (String) -> Unit) {
+    if (wv == null) return
+    runCatching {
+        wv.evaluateJavascript(DOM_PROBE_JS) { r ->
+            onLog("dom probe $tag [view ${wv.width}x${wv.height}]: ${r?.trim()?.take(220) ?: "null (renderer dead?)"}")
+        }
+    }.onFailure { onLog("dom probe $tag FAILED: ${it.message}") }
+}
 
 /**
  * Creator Studio screen — local Node server (127.0.0.1) par chalne wala
@@ -83,6 +97,12 @@ fun StudioScreen(
         val stamped = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date()) + "  " + line
         jsLog = (jsLog + stamped).takeLast(30)
     }
+
+    // Static experiment: Studio UI APK assets se (Achiva-style WebViewAssetLoader, bina
+    // localhost/Node server ke). Localhost Studio bilkul untouched — comparison JS Log me.
+    var staticMode by remember { mutableStateOf(false) }
+    var staticWebview by remember { mutableStateOf<WebView?>(null) }
+    var staticEpoch by remember { mutableIntStateOf(0) }
 
     // Server ensure — sirf tab jab screen visible ho; har attempt naya coroutine (IO par)
     LaunchedEffect(isVisible, reloadKey) {
@@ -120,6 +140,17 @@ fun StudioScreen(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
+                TextButton(
+                    onClick = { staticMode = !staticMode },
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text(
+                        "Static Test",
+                        fontSize = 11.sp,
+                        color = if (staticMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontWeight = if (staticMode) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
                 if (jsLog.isNotEmpty()) {
                     TextButton(
                         onClick = { showJsLog = true },
@@ -134,7 +165,7 @@ fun StudioScreen(
                 }
                 when (val s = state) {
                     is StudioState.Ready -> Text(
-                        text = "local:${StudioServerManager.serverPort()}",
+                        text = if (staticMode) "static:appassets" else "local:${StudioServerManager.serverPort()}",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
@@ -146,7 +177,11 @@ fun StudioScreen(
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 IconButton(onClick = {
-                    if (state is StudioState.Ready) webview?.reload() else reloadKey++
+                    when {
+                        staticMode -> staticWebview?.reload()
+                        state is StudioState.Ready -> webview?.reload()
+                        else -> reloadKey++
+                    }
                 }) {
                     Icon(Icons.Outlined.Refresh, contentDescription = "Reload Studio")
                 }
@@ -157,7 +192,19 @@ fun StudioScreen(
         }
 
         // ── Body ────────────────────────────────────────────────────────────
-        when (val s = state) {
+        if (staticMode) {
+            key(staticEpoch) {
+                StudioStaticWebView(
+                    isVisible = isVisible,
+                    onWebViewReady = { staticWebview = it },
+                    onLog = { line -> pushJsLog(line) },
+                    onRendererCrash = {
+                        pushJsLog("static: naya WebView banaya ja raha hai")
+                        staticEpoch++
+                    }
+                )
+            }
+        } else when (val s = state) {
             is StudioState.Loading -> Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -272,16 +319,7 @@ private fun StudioWebView(
     onLog: (String) -> Unit,
     onRendererCrash: () -> Unit
 ) {
-    // DOM probe — load ke baad phone ke WebView ka Chrome version + DOM status JS Log me
-    fun probeDom(wv: WebView?, tag: String) {
-        if (wv == null) return
-        runCatching {
-            wv.evaluateJavascript(DOM_PROBE_JS) { r ->
-                onLog("dom probe $tag [view ${wv.width}x${wv.height}]: ${r?.trim()?.take(220) ?: "null (renderer dead?)"}")
-            }
-        }.onFailure { onLog("dom probe $tag FAILED: ${it.message}") }
-    }
-
+    // DOM probe — helper top-level me hai (runDomProbe); static WebView bhi wahi use karta hai
     AndroidView(
         modifier = Modifier
             .fillMaxSize()
@@ -320,9 +358,9 @@ private fun StudioWebView(
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         onLog("page load done: $url")
-                        probeDom(view, "done")
+                        runDomProbe(view, "done", onLog)
                         // hydration ke baad dobara probe — textLen badha to JS chal raha hai
-                        view?.postDelayed({ probeDom(view, "+4s") }, 4000)
+                        view?.postDelayed({ runDomProbe(view, "+4s", onLog) }, 4000)
                     }
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -374,6 +412,126 @@ private fun StudioWebView(
             if (wv.url.isNullOrEmpty() && reloadKey > 0) wv.loadUrl(url)
             // BrowserScreen jaisa WebView lifecycle (black-screen fix):
             // visible -> onResume + resumeTimers, hidden -> onPause
+            if (isVisible) {
+                wv.onResume()
+                wv.resumeTimers()
+            } else {
+                wv.onPause()
+            }
+        },
+        onRelease = { wv ->
+            runCatching { wv.stopLoading() }
+        }
+    )
+}
+
+/**
+ * Static test WebView — Achiva ka proven pattern: Studio UI APK ke andar bundled
+ * files se load hota hai (WebViewAssetLoader, virtual https origin) — koi localhost,
+ * koi Node server, koi port nahi. API calls fail hongi (server nahi hai) — isliye
+ * UI shell + app ka apna error banner dikhega; yahi paint-ka proof hai.
+ * Saari diagnostics JS Log me "static:" prefix ke saath.
+ */
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+private fun StudioStaticWebView(
+    isVisible: Boolean,
+    onWebViewReady: (WebView) -> Unit,
+    onLog: (String) -> Unit,
+    onRendererCrash: () -> Unit
+) {
+    val context = LocalContext.current
+
+    // APK assets ko virtual https origin se serve karta hai (Achiva wala pattern)
+    val assetLoader = remember {
+        WebViewAssetLoader.Builder()
+            .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(context))
+            .build()
+    }
+
+    fun probe(wv: WebView?, tag: String) = runDomProbe(wv, tag, onLog)
+
+    AndroidView(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F0F0F)),
+        factory = { ctx ->
+            WebView(ctx).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                settings.loadWithOverviewMode = true
+                settings.useWideViewPort = true
+                setBackgroundColor(android.graphics.Color.parseColor("#0F0F0F"))
+                @Suppress("DEPRECATION")
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    settings.isAlgorithmicDarkeningAllowed = false
+                } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    settings.forceDark = android.webkit.WebSettings.FORCE_DARK_OFF
+                }
+                webViewClient = object : WebViewClient() {
+                    override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                        // appassets.androidplatform.net ke requests APK assets se serve hote hain
+                        return try {
+                            request?.let { assetLoader.shouldInterceptRequest(it.url) }
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
+
+                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean = false
+
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        onLog("static: page load start: $url")
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        onLog("static: page load done: $url")
+                        probe(view, "static done")
+                        // hydration ke baad dobara probe
+                        view?.postDelayed({ probe(view, "static +4s") }, 4000)
+                    }
+
+                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                        val u = request?.url?.toString().orEmpty()
+                        if (u.startsWith("http")) onLog("static: load error: ${error?.description} — $u")
+                    }
+
+                    override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+                        val u = request?.url?.toString().orEmpty()
+                        if (u.startsWith("http")) onLog("static: HTTP ${errorResponse?.statusCode} — $u")
+                    }
+
+                    override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                        onLog("!! static: RENDERER CRASHED (didCrash=${detail?.didCrash()})")
+                        onRendererCrash()
+                        view?.post {
+                            val w = view ?: return@post
+                            runCatching {
+                                (w.parent as? android.view.ViewGroup)?.removeView(w)
+                                w.destroy()
+                            }
+                        }
+                        return true
+                    }
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                        val level = consoleMessage?.messageLevel()
+                        if (level == ConsoleMessage.MessageLevel.ERROR || level == ConsoleMessage.MessageLevel.WARNING) {
+                            val src = consoleMessage?.sourceId()?.substringAfterLast('/').orEmpty()
+                            onLog("static: console ${level}: ${consoleMessage?.message()} ($src:${consoleMessage?.lineNumber()})")
+                        }
+                        return true
+                    }
+                }
+                loadUrl(STUDIO_STATIC_URL)
+                onWebViewReady(this)
+            }
+        },
+        update = { wv ->
+            // wahi lifecycle: visible -> resume, hidden -> pause
             if (isVisible) {
                 wv.onResume()
                 wv.resumeTimers()

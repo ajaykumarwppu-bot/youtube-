@@ -1,11 +1,11 @@
 {
-  "version_code": 204,
-  "version_name": "1.0.4",
+  "version_code": 205,
+  "version_name": "1.0.5",
   "min_supported_version_code": 1,
   "changelog": [
-    "FIX: Studio WebView ko ab BrowserScreen jaisa poora lifecycle mila — visible hone par onResume + resumeTimers, chhupe par onPause (WebView ka unmanaged lifecycle black screen ka naya main suspect tha)",
-    "WebView ko explicit dark background (#0F0F0F) + purane Android (10-12) ka buggy force-dark band — ye dono Browser wale WebView me pehle se the, Studio me missing the",
-    "DOM probe ab layout size bhi dekhata hai — innerHeight, clientHeight, body height + WebView ka actual width×height; black screen rahi to JS Log se exact culprit pakka pata chalega"
+    "EXPERIMENT: Studio me 'Static Test' mode — Studio UI ab APK ke andar bundled files se bhi load hota hai (Achiva jaisa WebViewAssetLoader, bina localhost/Node server ke). Top bar me 'Static Test' button dabao",
+    "Ye test pata karega ki black screen localhost/Node ki wajah se hai ya WebView ke content rendering ki — dono modes ka JS Log comparison milega (static: lines)",
+    "Static bundle = UI shell + client chunks (2.3MB); localhost Studio bilkul untouched — dono alag-alag test karo"
   ],
   "is_critical": false
 }
