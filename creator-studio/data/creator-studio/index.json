@@ -1,0 +1,167 @@
+{
+  "packages": [
+    {
+      "id": "36ba10b0-98d1-4330-a680-582c8a58a64b",
+      "name": "Hinglish documentary script-v3",
+      "type": "zip",
+      "version": "1.0.0",
+      "description": "ZIP package with 12 files",
+      "permissions": [],
+      "mcpToolsCount": 0,
+      "enabled": true,
+      "installedAt": "2026-11-05T13:38:30.989Z",
+      "updatedAt": "2026-11-05T13:42:34.832Z",
+      "originalFileName": "Hinglish documentary script-v3.zip",
+      "rootPrefix": "",
+      "fileCount": 12,
+      "skills": [],
+      "uploads": [
+        {
+          "n": 1,
+          "addedAt": "2026-11-05T13:38:30.989Z",
+          "fileName": "Hinglish documentary script-v3.zip",
+          "fileCount": 12
+        }
+      ]
+    },
+    {
+      "id": "91be15e2-f8b1-4dba-99fe-fa12bf870ff3",
+      "name": "Claude Resources",
+      "type": "zip",
+      "version": "1.0.0",
+      "description": "ZIP package with 6 files",
+      "permissions": [],
+      "mcpToolsCount": 0,
+      "enabled": true,
+      "installedAt": "2026-11-05T13:34:22.053Z",
+      "updatedAt": "2026-11-05T20:56:04.205Z",
+      "originalFileName": "Claude Resources.zip",
+      "rootPrefix": "",
+      "fileCount": 6,
+      "skills": [],
+      "uploads": [
+        {
+          "n": 1,
+          "addedAt": "2026-11-05T13:34:22.053Z",
+          "fileName": "Claude Resources.zip",
+          "fileCount": 6
+        }
+      ]
+    },
+    {
+      "id": "58e4b115-4abb-4966-ae1d-6539056c73d7",
+      "name": "Creator Studio Brain",
+      "type": "plugin",
+      "version": "1.2.0",
+      "description": "YouTube automation skills for the Creator Studio agent: script writing, SEO, upload SOP and learnings.",
+      "icon": "icon.png",
+      "manifestId": "creator-studio",
+      "manifestVersion": 3,
+      "permissions": [
+        "storage",
+        "scripting",
+        "antigemFiles"
+      ],
+      "mcpToolsCount": 1,
+      "enabled": true,
+      "installedAt": "2026-11-05T13:28:18.989Z",
+      "updatedAt": "2026-11-05T14:04:12.366Z",
+      "originalFileName": "creator-studio-brain.zip",
+      "rootPrefix": "",
+      "fileCount": 7,
+      "skills": [
+        {
+          "id": "58e4b115-4abb-4966-ae1d-6539056c73d7:skills__seo_optimizer.md",
+          "packageId": "58e4b115-4abb-4966-ae1d-6539056c73d7",
+          "name": "seo_optimizer",
+          "title": "SEO Optimizer",
+          "description": "Title, description, tags aur hashtags generate karta hai CTR ke liye.",
+          "path": "skills/seo_optimizer.md",
+          "detailFiles": [],
+          "enabled": true,
+          "version": "1.0.3",
+          "versions": [
+            {
+              "version": "1.0.0",
+              "content": "---\nname: SEO Optimizer\ndescription: Title, description, tags aur hashtags generate karta hai CTR ke liye.\n---\n\n# SEO Optimizer\n\nTitles under 60 chars, primary keyword first. Description mein timestamps.\nTags: 400-500 chars total. Hashtags: 3 max above title.\n",
+              "savedAt": "2026-11-05T13:28:18.989Z",
+              "source": "upload"
+            },
+            {
+              "version": "1.0.1",
+              "content": " — UPDATED from phone test---\nname: SEO Optimizer\ndescription: Title, description, tags aur hashtags generate karta hai CTR ke liye.\n---\n\n# SEO Optimizer\n\nTitles under 60 chars, primary keyword first. Description mein timestamps.\nTags: 400-500 chars total. Hashtags: 3 max above title.\n",
+              "savedAt": "2026-11-05T14:01:36.559Z",
+              "source": "edit",
+              "note": "mobile UI test edit"
+            },
+            {
+              "version": "1.0.2",
+              "content": "---\nname: SEO Optimizer\ndescription: Title, description, tags aur hashtags generate karta hai CTR ke liye.\n---\n\n# SEO Optimizer\n\nTitles under 60 chars, primary keyword first. Description mein timestamps.\nTags: 400-500 chars total. Hashtags: 3 max above title.\n",
+              "savedAt": "2026-11-05T14:02:39.175Z",
+              "source": "rollback",
+              "note": "Rolled back to v1.0.0"
+            },
+            {
+              "version": "1.0.3",
+              "content": "---\nname: SEO Optimizer\ndescription: Title, description, tags aur hashtags generate karta hai CTR ke liye.\n---\n\n# SEO Optimizer\n\nTitles under 60 chars, primary keyword first. Description mein timestamps.\nTags: 400-500 chars total. Hashtags: 3 max above title.\n",
+              "savedAt": "2026-11-05T14:04:12.366Z",
+              "source": "rollback",
+              "note": "Rolled back to v1.0.0"
+            }
+          ],
+          "updatedAt": "2026-11-05T14:04:12.366Z"
+        },
+        {
+          "id": "58e4b115-4abb-4966-ae1d-6539056c73d7:skills__upload_sop.md",
+          "packageId": "58e4b115-4abb-4966-ae1d-6539056c73d7",
+          "name": "upload_sop",
+          "title": "YouTube Upload SOP",
+          "description": "studio.youtube.com par video upload karne ka step-by-step SOP using browser automation.",
+          "path": "skills/upload_sop.md",
+          "detailFiles": [],
+          "enabled": true,
+          "version": "1.0.0",
+          "versions": [
+            {
+              "version": "1.0.0",
+              "content": "---\nname: YouTube Upload SOP\ndescription: studio.youtube.com par video upload karne ka step-by-step SOP using browser automation.\n---\n\n# Upload SOP\n\n1. Open studio.youtube.com in AntiGem browser\n2. Click Create > Upload videos\n3. Use chrome.antigem.uploadFiles with the video path\n4. Fill title, description, thumbnail\n5. Publish or schedule\n",
+              "savedAt": "2026-11-05T13:28:18.989Z",
+              "source": "upload"
+            }
+          ],
+          "updatedAt": "2026-11-05T13:28:18.989Z"
+        },
+        {
+          "id": "58e4b115-4abb-4966-ae1d-6539056c73d7:skills__youtube_script.md",
+          "packageId": "58e4b115-4abb-4966-ae1d-6539056c73d7",
+          "name": "youtube_script",
+          "title": "YouTube Script Framework",
+          "description": "Hook-first retention script likhne ka framework — 15s hook, story bridge, CTA.",
+          "path": "skills/youtube_script.md",
+          "detailFiles": [
+            "skills/youtube_script/details/retention.md"
+          ],
+          "enabled": true,
+          "version": "1.0.0",
+          "versions": [
+            {
+              "version": "1.0.0",
+              "content": "---\nname: YouTube Script Framework\ndescription: Hook-first retention script likhne ka framework — 15s hook, story bridge, CTA.\n---\n\n# YouTube Script Framework\n\nIs skill ka use karke agent retention-optimized scripts likhta hai.\n\n## Structure\n1. **Hook (0-15s)** — bold claim ya question\n2. **Bridge (15-30s)** — promise + credibility\n3. **Body** — 3 value points, har point pe open loop\n4. **CTA** — natural, value-linked\n\nRead `details/retention.md` for advanced retention tactics.\n",
+              "savedAt": "2026-11-05T13:28:18.989Z",
+              "source": "upload"
+            }
+          ],
+          "updatedAt": "2026-11-05T13:28:18.989Z"
+        }
+      ],
+      "uploads": [
+        {
+          "n": 1,
+          "addedAt": "2026-11-05T13:28:18.989Z",
+          "fileName": "creator-studio-brain.zip",
+          "fileCount": 7
+        }
+      ]
+    }
+  ]
+}

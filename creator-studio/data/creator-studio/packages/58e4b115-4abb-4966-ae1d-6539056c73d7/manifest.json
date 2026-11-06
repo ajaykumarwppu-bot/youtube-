@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "id": "creator-studio",
+  "name": "Creator Studio Brain",
+  "version": "1.2.0",
+  "description": "YouTube automation skills for the Creator Studio agent: script writing, SEO, upload SOP and learnings.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "antigemFiles"
+  ],
+  "mcp_tools": [
+    {
+      "name": "example_tool",
+      "description": "demo"
+    }
+  ],
+  "icon": "icon.png"
+}
