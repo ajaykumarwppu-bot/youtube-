@@ -1,0 +1,212 @@
+{
+  "manifest_version": 3,
+  "id": "creator-studio",
+  "name": "Creator Studio MCP",
+  "version": "1.0.0",
+  "description": "Creator Studio (YouTube automation) ke local server se baat karta hai — idea bank, 8-stage production pipeline, video records with upload package, brain (research/experiments/findings), skills aur settings. Pehle app me Studio kholo (server start hota hai), phir ye tools chalao.",
+  "permissions": ["storage"],
+  "background": { "service_worker": "worker.js" },
+  "mcp_tools": [
+    {
+      "name": "studio_health",
+      "description": "Check karo ki Creator Studio local server chal raha hai. Agar ready:false ya error aaye to owner ko bolo: app me floating switcher se Studio kholein (server wahan se start hota hai).",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_ideas_list",
+      "description": "Idea Bank ke saare ideas (topic, details, status) + unke production runs ki list. Pipeline ka overview lene ke liye.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_idea_add",
+      "description": "Idea Bank me naya video idea add karo. topic required, details optional (angle, target audience, research notes).",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "topic": { "type": "string" }, "details": { "type": "string" } },
+        "required": ["topic"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_idea_update",
+      "description": "Idea edit/update karo — topic, details ya status (new/picked/done).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "topic": { "type": "string" },
+          "details": { "type": "string" },
+          "status": { "type": "string", "enum": ["new", "picked", "done"] }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_pipeline_list",
+      "description": "Production runs ki detailed list — har run ka current stage, stage statuses, failed stage/reason. Agent ka aage ka plan isi se decide hota hai.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_pipeline_start",
+      "description": "Kisi idea par 8-stage production run START karo (idea status picked ho jata hai). Iske baad stages ke hisaab se kaam karo aur studio_stage_next se advance karo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "idea_id": { "type": "string" } },
+        "required": ["idea_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_stage_next",
+      "description": "Active stage ko DONE mark karke agla stage ACTIVE karo (jab current stage ka kaam poora ho jaye). Last stage done hone par run production-ready ho jata hai.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "run_id": { "type": "string" } },
+        "required": ["run_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_run_retry",
+      "description": "Failed run ko usi stage par wapas active karke resume karo (fix karne ke baad).",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "run_id": { "type": "string" } },
+        "required": ["run_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_videos_list",
+      "description": "Channel ke saare video records — status (processing/uploaded/scheduled/failed), script, pipeline, experiments, upload packaging. Video detail isi se milti hai.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_video_record",
+      "description": "Video record create/update karo (upsert). Fields: title (required), topic, kind (long/short), status (uploaded/scheduled/processing/failed), duration, script, scheduledFor, publishedAt, failReason, progress {stage, pct, note}, packaging {title, description, tags, hashtags, chapters [{time, label}], endScreen, pinnedComment}. Upload package yahin save hota hai.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "topic": { "type": "string" },
+          "kind": { "type": "string", "enum": ["long", "short"] },
+          "status": { "type": "string", "enum": ["uploaded", "scheduled", "processing", "failed"] },
+          "duration": { "type": "string" },
+          "script": { "type": "string" },
+          "scheduledFor": { "type": "string" },
+          "publishedAt": { "type": "string" },
+          "failReason": { "type": "string" },
+          "progress": {
+            "type": "object",
+            "properties": { "stage": { "type": "string" }, "pct": { "type": "number" }, "note": { "type": "string" } },
+            "additionalProperties": false
+          },
+          "packaging": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "titleNote": { "type": "string" },
+              "description": { "type": "string" },
+              "tags": { "type": "array", "items": { "type": "string" } },
+              "hashtags": { "type": "array", "items": { "type": "string" } },
+              "chapters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": { "time": { "type": "string" }, "label": { "type": "string" } },
+                  "required": ["time", "label"],
+                  "additionalProperties": false
+                }
+              },
+              "endScreen": { "type": "string" },
+              "pinnedComment": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["title"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_brain_overview",
+      "description": "Creator Brain ka full state — research questions, experiments (findings with enabled/disabled report items), tracked videos. Content strategy decisions isi par based karo.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_brain_question_add",
+      "description": "Naya research question raise karo. areas required (thumbnail/title/topic/hook/seo/length me se), text optional, videoId optional (source video). Same areas wala question repeat hua to wo merge hota hai.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "areas": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["thumbnail", "title", "topic", "hook", "seo", "length"] }
+          },
+          "text": { "type": "string" },
+          "videoId": { "type": "string" }
+        },
+        "required": ["areas"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_brain_experiment_toggle",
+      "description": "Experiment ke report item ko enable/disable karo (body: item_id + enabled) ya poore experiment ke items ek saath set karo (set_all).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "experiment_id": { "type": "string" },
+          "item_id": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "set_all": { "type": "boolean" }
+        },
+        "required": ["experiment_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_dashboard",
+      "description": "Home dashboard ka channel health summary (read-only) — overall stats jo Studio ke Home screen par dikhte hain.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_settings_get",
+      "description": "Studio settings padho — keys MASKED hoti hain (raw token kabhi nahi milti), integrations ka connect status + preferences dikhte hain.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_settings_set",
+      "description": "Studio settings update karo. Do kind: (1) cred — integrationId + fieldId + value (API key/token save, value null = remove); (2) prefs — preferences patch. Sirf owner ke kehne par ya setup flow me use karo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "enum": ["cred", "prefs"] },
+          "integrationId": { "type": "string" },
+          "fieldId": { "type": "string" },
+          "value": { "type": "string", "description": "null = key remove" },
+          "patch": { "type": "object", "description": "kind=prefs ke liye settings patch" }
+        },
+        "required": ["kind"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "studio_skills_list",
+      "description": "Installed skill packages ki list — har package ke naam, enabled status, aur skills (name, description, version, stage tags). Kaam shuru se pehle relevant skills dhundo.",
+      "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+    },
+    {
+      "name": "studio_skill_get",
+      "description": "Ek skill ka poora content padho (skill_id se) — instructions, references, current markdown. Script writing / SEO / thumbnail jaise playbooks isi se follow hote hain.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "skill_id": { "type": "string" } },
+        "required": ["skill_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

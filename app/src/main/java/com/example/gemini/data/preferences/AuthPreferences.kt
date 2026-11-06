@@ -593,21 +593,27 @@ class AuthPreferences(private val context: Context) {
     val floatingSwitcherItems: Flow<List<String>> = context.dataStore.data
         .map {
             val raw = it[FLOATING_SWITCHER_ITEMS] ?: "chat,ide,terminal,browser,notes"
-            withNotesSwitcherItem(raw.split(",").map { s -> s.trim() }.filter { s -> s.isNotEmpty() })
+            withStudioSwitcherItem(withNotesSwitcherItem(raw.split(",").map { s -> s.trim() }.filter { s -> s.isNotEmpty() }))
         }
 
     fun getFloatingSwitcherItemsSync(): List<String> {
         val raw = syncPrefs.getString("floating_switcher_items", "chat,ide,terminal,browser,notes") ?: "chat,ide,terminal,browser,notes"
-        return withNotesSwitcherItem(raw.split(",").map { it.trim() }.filter { it.isNotEmpty() })
+        return withStudioSwitcherItem(withNotesSwitcherItem(raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }))
     }
 
     /** Lists saved before Notes existed get it at the end, until the user customizes the switcher items themselves. */
     private fun withNotesSwitcherItem(items: List<String>): List<String> =
         if ("notes" in items || syncPrefs.getBoolean("floating_switcher_items_has_notes", false)) items else items + "notes"
 
+    /** Lists saved before Creator Studio existed get a Studio button too, until the user customizes the switcher themselves. */
+    private fun withStudioSwitcherItem(items: List<String>): List<String> =
+        if ("studio" in items || syncPrefs.getBoolean("floating_switcher_items_has_studio", false)) items else items + "studio"
+
     suspend fun saveFloatingSwitcherItems(items: List<String>) {
         val raw = items.joinToString(",")
-        syncPrefs.edit().putString("floating_switcher_items", raw).putBoolean("floating_switcher_items_has_notes", true).apply()
+        syncPrefs.edit().putString("floating_switcher_items", raw)
+            .putBoolean("floating_switcher_items_has_notes", true)
+            .putBoolean("floating_switcher_items_has_studio", true).apply()
         context.dataStore.edit { it[FLOATING_SWITCHER_ITEMS] = raw }
     }
 

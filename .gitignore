@@ -60,3 +60,6 @@ output/
 .agents/
 flow_mcp/
 finally.zip
+# generated build artifacts (CI banata hai)
+app/src/main/assets/creator-studio.zip
+app/release.jks

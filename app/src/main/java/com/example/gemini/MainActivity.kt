@@ -31,7 +31,8 @@ enum class AppViewMode {
     IDE,
     TERMINAL,
     BROWSER,
-    NOTES
+    NOTES,
+    STUDIO
 }
 
 class MainActivity : ComponentActivity() {
@@ -92,6 +93,7 @@ class MainActivity : ComponentActivity() {
                     "TERMINAL" -> AppViewMode.TERMINAL
                     "BROWSER" -> AppViewMode.BROWSER
                     "NOTES" -> AppViewMode.NOTES
+                    "STUDIO" -> AppViewMode.STUDIO
                     else -> AppViewMode.CHAT
                 }
             }
@@ -124,6 +126,11 @@ class MainActivity : ComponentActivity() {
                         "NOTES" -> {
                             previousViewMode = currentViewMode
                             currentViewMode = AppViewMode.NOTES
+                        }
+
+                        "STUDIO" -> {
+                            previousViewMode = currentViewMode
+                            currentViewMode = AppViewMode.STUDIO
                         }
                     }
                     chatViewModel.consumeRequestedViewMode()
@@ -379,6 +386,25 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
+                                // Persistent Creator Studio Screen (local node server + WebView; server boot IO par, UI kabhi block nahi)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .graphicsLayer {
+                                            val isVisible = currentViewMode == AppViewMode.STUDIO
+                                            alpha = if (isVisible) 1f else 0f
+                                            translationX = if (isVisible) 0f else 20000f
+                                        }
+                                ) {
+                                    com.example.gemini.ui.studio.StudioScreen(
+                                        isVisible = currentViewMode == AppViewMode.STUDIO,
+                                        onClose = {
+                                            currentViewMode =
+                                                if (previousViewMode == AppViewMode.STUDIO) AppViewMode.CHAT else previousViewMode
+                                        }
+                                    )
+                                }
+
                                 // Floating App Switcher Across Whole App (Renders on top of Chat, IDE, Terminal, Browser)
                                 if (isFloatingSwitcherEnabled) {
                                     com.example.gemini.ui.components.FloatingSwitcherWidget(
@@ -407,6 +433,10 @@ class MainActivity : ComponentActivity() {
                                         onNavigateToNotes = {
                                             previousViewMode = currentViewMode
                                             currentViewMode = AppViewMode.NOTES
+                                        },
+                                        onNavigateToStudio = {
+                                            previousViewMode = currentViewMode
+                                            currentViewMode = AppViewMode.STUDIO
                                         },
                                         onPositionSaved = { x, y ->
                                             chatViewModel.saveFloatingSwitcherPosition(x, y)

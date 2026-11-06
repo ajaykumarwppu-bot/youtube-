@@ -32,9 +32,11 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("release.jks")
-            storePassword = "123456"
-            keyAlias = "antigem"
-            keyPassword = "123456"
+            // CI secrets se (RELEASE_STORE_PASS / RELEASE_KEY_ALIAS / RELEASE_KEY_PASS);
+            // local dev ke liye fallback defaults.
+            storePassword = System.getenv("RELEASE_STORE_PASS") ?: "123456"
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "antigem"
+            keyPassword = System.getenv("RELEASE_KEY_PASS") ?: "123456"
         }
     }
 
@@ -48,6 +50,7 @@ android {
             buildConfigField("int", "BRIDGE_PORT", "1236")
             buildConfigField("int", "HUB_PORT", "1237")
             buildConfigField("int", "BROWSER_MCP_PORT", "8767")
+            buildConfigField("int", "STUDIO_PORT", "8877")
             buildConfigField("boolean", "IS_SHARED_USER_ID", "false")
         }
         create("termux") {
@@ -56,6 +59,7 @@ android {
             buildConfigField("int", "BRIDGE_PORT", "1234")
             buildConfigField("int", "HUB_PORT", "1235")
             buildConfigField("int", "BROWSER_MCP_PORT", "8765")
+            buildConfigField("int", "STUDIO_PORT", "8875")
             buildConfigField("boolean", "IS_SHARED_USER_ID", "false")
         }
         create("termuxShared") {
@@ -64,6 +68,7 @@ android {
             buildConfigField("int", "BRIDGE_PORT", "1234")
             buildConfigField("int", "HUB_PORT", "1235")
             buildConfigField("int", "BROWSER_MCP_PORT", "8765")
+            buildConfigField("int", "STUDIO_PORT", "8875")
             buildConfigField("boolean", "IS_SHARED_USER_ID", "true")
         }
     }
@@ -104,7 +109,7 @@ android {
     }
 
     androidResources {
-        noCompress += listOf("gz", "tgz", "tar.gz", "tar")
+        noCompress += listOf("gz", "tgz", "tar.gz", "tar", "zip")
     }
 
     packaging {

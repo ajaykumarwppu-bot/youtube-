@@ -195,7 +195,7 @@ fun SettingsDialog(
     onClearPluginStatus: () -> Unit = {},
     isFloatingSwitcherEnabled: Boolean = true,
     floatingSwitcherOrientation: String = "HORIZONTAL",
-    floatingSwitcherItems: List<String> = listOf("chat", "ide", "terminal", "browser", "notes"),
+    floatingSwitcherItems: List<String> = listOf("chat", "ide", "terminal", "browser", "notes", "studio"),
     floatingSwitcherAutoCollapseSec: Int = 0,
     onToggleFloatingSwitcher: (Boolean) -> Unit = {},
     onSetFloatingSwitcherOrientation: (String) -> Unit = {},
@@ -1486,7 +1486,7 @@ private fun AppearanceSubScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    val allAvailable = listOf("chat", "ide", "terminal", "browser", "notes")
+                    val allAvailable = listOf("chat", "ide", "terminal", "browser", "notes", "studio")
                     val currentItems = floatingSwitcherItems.toMutableList()
                     val displayedList = currentItems + allAvailable.filterNot { currentItems.contains(it) }
 
@@ -1498,6 +1498,7 @@ private fun AppearanceSubScreen(
                             "terminal" -> "Terminal"
                             "browser" -> "Web Browser"
                             "notes" -> "Notes & To-dos"
+                            "studio" -> "Creator Studio"
                             else -> itemId
                         }
                         val itemIcon = when (itemId) {
@@ -1506,6 +1507,7 @@ private fun AppearanceSubScreen(
                             "terminal" -> Icons.Outlined.Terminal
                             "browser" -> Icons.Outlined.Language
                             "notes" -> Icons.Outlined.EditNote
+                            "studio" -> Icons.Outlined.SmartDisplay
                             else -> Icons.Outlined.ChatBubbleOutline
                         }
 
@@ -9324,7 +9326,7 @@ private fun AboutSubScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/santoshkurmi/antigem"))
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ajaykumarwppu-bot/youtube-"))
                             context.startActivity(intent)
                         }
                 ) {
@@ -9351,7 +9353,7 @@ private fun AboutSubScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "github.com/santoshkurmi/antigem",
+                                    text = "github.com/ajaykumarwppu-bot/youtube-",
                                     fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -9372,7 +9374,7 @@ private fun AboutSubScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/santoshkurmi/antigem/releases"))
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ajaykumarwppu-bot/youtube-/releases"))
                             context.startActivity(intent)
                         }
                 ) {
